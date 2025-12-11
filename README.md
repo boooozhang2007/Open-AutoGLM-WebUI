@@ -64,6 +64,31 @@ ADB 调试能力，可通过 WiFi 或网络连接设备，实现灵活的远程�
 下载 [安装包](https://github.com/senzhk/ADBKeyBoard/blob/master/ADBKeyboard.apk) 并在对应的安卓设备中进行安装。
 注意，安装完成后还需要到 `设置-输入法` 或者 `设置-键盘列表` 中启用 `ADB Keyboard` 才能生效
 
+## 🚀 快速启动 (一键部署)
+
+我们提供了跨平台的一键启动脚本，自动处理环境依赖安装和配置。
+
+### Windows 用户
+双击运行根目录下的 `run_webui.bat` 脚本，或者在终端中运行：
+```powershell
+.\run_webui.bat
+```
+
+### Linux / macOS 用户
+在终端中运行：
+```bash
+chmod +x run_webui.sh
+./run_webui.sh
+```
+
+脚本会自动执行以下操作：
+1. 检查并安装 `uv` 包管理器（如果未安装）。
+2. 自动创建 `.env` 配置文件（如果不存在）。
+3. 安装项目依赖。
+4. 启动 WebUI 服务。
+
+启动成功后，浏览器访问 `http://127.0.0.1:8000` 即可使用。
+
 ## 部署准备工作
 
 ### 1. 安装依赖
