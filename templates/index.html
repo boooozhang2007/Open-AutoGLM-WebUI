@@ -3,93 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phone Agent WebUI</title>
+    <title>Open-AutoGLM WebUI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { padding-top: 20px; background-color: #f8f9fa; }
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+            --light-color: #f8f9fc;
+            --dark-color: #5a5c69;
+        }
+        body { 
+            background-color: #f3f4f6; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .navbar {
+            background-color: #fff;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            z-index: 100;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+        .main-container {
+            height: calc(100vh - 56px); /* Subtract navbar height */
+            padding: 20px;
+        }
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 600;
+            color: var(--primary-color);
+            border-radius: 0.75rem 0.75rem 0 0 !important;
+            padding: 1rem 1.25rem;
+        }
+        .card-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.25rem;
+        }
+        
+        /* Device List */
+        .list-group-item {
+            border: 1px solid #e3e6f0;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem !important;
+            transition: all 0.2s;
+        }
+        .list-group-item:hover {
+            background-color: #f8f9fc;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .list-group-item.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Screen Container */
         .screen-container { 
             text-align: center; 
-            background: #000; 
-            min-height: 600px; 
+            background: #1a1c23; 
+            height: 100%;
             display: flex; 
             align-items: center; 
             justify-content: center;
-            border-radius: 10px;
+            border-radius: 0.75rem;
             overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
-        .screen-img { max-width: 100%; max-height: 80vh; }
-        .chat-container { height: 80vh; display: flex; flex-direction: column; }
-        .chat-log { flex-grow: 1; overflow-y: auto; background: #fff; border: 1px solid #dee2e6; border-radius: 5px; padding: 10px; margin-bottom: 10px; min-height: 0; }
-        .step-item { margin-bottom: 10px; padding: 10px; border-bottom: 1px solid #eee; }
-        .step-thinking { color: #666; font-style: italic; margin-bottom: 5px; }
-        .step-action { font-weight: bold; color: #0d6efd; }
-        .step-error { color: #dc3545; }
+        .screen-img { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        }
+        
+        /* Chat Area */
+        .chat-log { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            background: #f8f9fc; 
+            border: 1px solid #e3e6f0; 
+            border-radius: 0.5rem; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            min-height: 0; 
+        }
+        .step-item { 
+            margin-bottom: 15px; 
+            padding: 12px; 
+            border-radius: 0.5rem;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid transparent;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .step-item.agent { border-left-color: var(--primary-color); }
+        .step-item.system { border-left-color: var(--info-color); background-color: #eefbfd; }
+        .step-item.error { border-left-color: var(--danger-color); background-color: #fdf3f2; }
+        .step-item.success { border-left-color: var(--success-color); background-color: #f0fdf4; }
+        
+        .step-thinking { 
+            color: #666; 
+            font-style: italic; 
+            margin-bottom: 8px; 
+            font-size: 0.9rem;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .step-action { 
+            font-weight: 600; 
+            color: var(--primary-color); 
+            font-family: monospace;
+            background: #e8f0fe;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3">
-                <div class="card mb-3">
-                    <div class="card-header">Devices</div>
-                    <div class="card-body">
-                        <div id="device-list" class="list-group mb-3">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-robot"></i> Open-AutoGLM
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-success me-2" id="connection-status">Connected</span>
+                <a href="https://github.com/boooozhang2007/Open-AutoGLM-WebUI" target="_blank" class="btn btn-outline-dark btn-sm">
+                    <i class="bi bi-github"></i> GitHub
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid main-container">
+        <div class="row h-100 g-3">
+            <!-- Sidebar: Devices & Settings -->
+            <div class="col-md-3 h-100 d-flex flex-column">
+                <!-- Devices Card -->
+                <div class="card mb-3" style="flex: 1;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-phone"></i> Devices</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshDevices()" title="Refresh">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div id="device-list" class="list-group mb-3 flex-grow-1 overflow-auto">
                             <!-- Devices will be loaded here -->
                         </div>
-                        <button class="btn btn-primary w-100 mb-2" onclick="refreshDevices()">Refresh Devices</button>
                         
-                        <hr>
-                        <h6>Connect Remote Device</h6>
-                        <div class="input-group mb-2">
-                            <input type="text" id="connect-address" class="form-control" placeholder="IP:Port">
-                            <button class="btn btn-outline-secondary" onclick="connectDevice()">Connect</button>
-                        </div>
-                        <button class="btn btn-outline-info w-100" onclick="scanAndConnect(this)">Scan & Connect (LAN)</button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">Settings</div>
-                    <div class="card-body">
-                        <div class="mb-2">
-                            <label class="form-label">Model</label>
-                            <input type="text" id="model-name" class="form-control" value="{{ default_model }}">
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">Base URL</label>
-                            <input type="text" id="base-url" class="form-control" value="{{ default_base_url }}">
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">API Key</label>
-                            <input type="password" id="api-key" class="form-control" value="{{ default_api_key }}">
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">Max Steps</label>
-                            <input type="number" id="max-steps" class="form-control" value="{{ default_max_steps }}">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Screen -->
-            <div class="col-md-5">
-                <div class="screen-container">
-                    <img id="screen-stream" class="screen-img" src="" alt="Select a device to start streaming">
-                </div>
-            </div>
-
-            <!-- Chat -->
-            <div class="col-md-4">
-                <div class="chat-container">
-                    <div class="card h-100">
-                        <div class="card-header">Task Execution</div>
-                        <div class="card-body d-flex flex-column" style="overflow: hidden;">
-                            <div id="chat-log" class="chat-log"></div>
-                            <div class="input-group">
-                                <input type="text" id="task-input" class="form-control" placeholder="Enter task (e.g., Open Meituan...)">
-                                <button class="btn btn-primary" onclick="startTask()">Run</button>
+                        <div class="mt-auto">
+                            <h6 class="text-muted small text-uppercase fw-bold mb-2">Remote Connection</h6>
+                            <div class="input-group mb-2">
+                                <input type="text" id="connect-address" class="form-control form-control-sm" placeholder="IP:Port">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="connectDevice()">
+                                    <i class="bi bi-plug"></i>
+                                </button>
                             </div>
+                            <button class="btn btn-outline-info btn-sm w-100" onclick="scanAndConnect(this)">
+                                <i class="bi bi-wifi"></i> Scan & Connect (LAN)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Card -->
+                <div class="card" style="flex: 0 0 auto;">
+                    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#settingsBody" style="cursor: pointer;">
+                        <span><i class="bi bi-gear"></i> Settings</span>
+                        <i class="bi bi-chevron-down float-end"></i>
+                    </div>
+                    <div id="settingsBody" class="collapse show">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Model</label>
+                                <input type="text" id="model-name" class="form-control form-control-sm" value="{{ default_model }}">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Base URL</label>
+                                <input type="text" id="base-url" class="form-control form-control-sm" value="{{ default_base_url }}">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">API Key</label>
+                                <input type="password" id="api-key" class="form-control form-control-sm" value="{{ default_api_key }}">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">Max Steps</label>
+                                <input type="number" id="max-steps" class="form-control form-control-sm" value="{{ default_max_steps }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: Screen Stream -->
+            <div class="col-md-5 h-100">
+                <div class="card h-100 bg-dark border-0">
+                    <div class="card-header bg-transparent text-white border-secondary d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-display"></i> Live View</span>
+                        <span class="badge bg-danger" id="live-badge">LIVE</span>
+                    </div>
+                    <div class="card-body p-0 d-flex align-items-center justify-content-center bg-black rounded-bottom">
+                        <div class="screen-container w-100 h-100 border-0 rounded-0">
+                            <img id="screen-stream" class="screen-img" src="" alt="Select a device to start streaming">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Chat & Task -->
+            <div class="col-md-4 h-100">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-chat-dots"></i> Task Execution</span>
+                        <button class="btn btn-sm btn-outline-danger" onclick="stopTask()" id="stop-btn" disabled>
+                            <i class="bi bi-stop-circle"></i> Stop
+                        </button>
+                    </div>
+                    <div class="card-body d-flex flex-column" style="overflow: hidden;">
+                        <div id="chat-log" class="chat-log">
+                            <div class="text-center text-muted mt-5">
+                                <i class="bi bi-robot display-4"></i>
+                                <p class="mt-2">Ready to assist you.<br>Enter a task below to start.</p>
+                            </div>
+                        </div>
+                        <div class="input-group mt-2">
+                            <input type="text" id="task-input" class="form-control" placeholder="Enter task (e.g., Open Meituan...)">
+                            <button class="btn btn-primary" onclick="startTask()" id="run-btn">
+                                <i class="bi bi-send"></i> Run
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -97,33 +271,48 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentDeviceId = null;
         let ws = null;
 
         async function refreshDevices() {
-            const response = await fetch('/api/devices');
-            const devices = await response.json();
-            const list = document.getElementById('device-list');
-            list.innerHTML = '';
-            
-            devices.forEach(d => {
-                const item = document.createElement('button');
-                item.className = `list-group-item list-group-item-action ${currentDeviceId === d.id ? 'active' : ''}`;
-                item.innerHTML = `
-                    <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">${d.model || 'Unknown Model'}</h6>
-                        <small>${d.connection_type}</small>
-                    </div>
-                    <p class="mb-1 small">${d.id}</p>
-                    <small>${d.status}</small>
-                `;
-                item.onclick = () => selectDevice(d.id);
-                list.appendChild(item);
-            });
+            try {
+                const response = await fetch('/api/devices');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch devices: ${response.status} ${response.statusText}`);
+                }
+                const devices = await response.json();
+                const list = document.getElementById('device-list');
+                list.innerHTML = '';
+                
+                if (devices.length === 0) {
+                    list.innerHTML = '<div class="text-center text-muted p-3"><small>No devices found</small></div>';
+                }
+                
+                devices.forEach(d => {
+                    const item = document.createElement('button');
+                    item.className = `list-group-item list-group-item-action ${currentDeviceId === d.id ? 'active' : ''}`;
+                    item.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0"><i class="bi bi-phone"></i> ${d.model || 'Unknown Model'}</h6>
+                                <small class="opacity-75">${d.id}</small>
+                            </div>
+                            <span class="badge bg-light text-dark border">${d.connection_type}</span>
+                        </div>
+                    `;
+                    item.onclick = () => selectDevice(d.id);
+                    list.appendChild(item);
+                });
 
-            if (devices.length > 0 && !currentDeviceId) {
-                selectDevice(devices[0].id);
+                if (devices.length > 0 && !currentDeviceId) {
+                    selectDevice(devices[0].id);
+                }
+            } catch (error) {
+                const list = document.getElementById('device-list');
+                list.innerHTML = `<div class="text-center text-danger p-3"><small>Error loading devices: ${error.message}</small></div>`;
+                console.error('Error fetching devices:', error);
             }
         }
 
@@ -132,6 +321,7 @@
             document.getElementById('screen-stream').src = `/stream?device_id=${id}&t=${Date.now()}`;
             refreshDevices(); // Update active state
         }
+        
         async function connectDevice() {
             const input = document.getElementById('connect-address');
             const btn = document.querySelector('button[onclick="connectDevice()"]');
@@ -139,26 +329,27 @@
             
             if (!address) return;
             
-            const originalText = btn.innerText;
-            btn.innerText = "Connecting...";
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
             btn.disabled = true;
 
             try {
                 const response = await fetch(`/api/connect?address=${encodeURIComponent(address)}`, { method: 'POST' });
                 const result = await response.json();
-                alert(result.message);
+                // Use toast or custom alert instead of native alert for better UI
+                alert(result.message); 
                 refreshDevices();
             } catch (e) {
-                alert("Connection failed: " + e);
+                alert("Connection failed. Please check the address and try again." + (e && e.message ? "\nError: " + e.message : ""));
             } finally {
-                btn.innerText = originalText;
+                btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         }
 
         async function scanAndConnect(btn) {
-            const originalText = btn.innerText;
-            btn.innerText = "Scanning...";
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Scanning...';
             btn.disabled = true;
 
             try {
@@ -180,15 +371,16 @@
                     refreshDevices();
                 }
             } catch (e) {
-                alert("Scan failed: " + e);
+                alert("Scan failed: " + (e && e.message ? e.message : e));
             } finally {
-                btn.innerText = originalText;
+                btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         }
 
         function startTask() {
-            const task = document.getElementById('task-input').value;
+            const taskInput = document.getElementById('task-input');
+            const task = taskInput.value;
             if (!task) return;
             
             if (!currentDeviceId) {
@@ -198,6 +390,10 @@
 
             const log = document.getElementById('chat-log');
             log.innerHTML = ''; // Clear log
+            
+            // UI updates
+            document.getElementById('run-btn').disabled = true;
+            document.getElementById('stop-btn').disabled = false;
             
             if (ws) ws.close();
             
@@ -221,35 +417,81 @@
                 if (msg.type === 'step') {
                     const data = msg.data;
                     let content = "";
-                    if (data.thinking) content += `<div class="step-thinking">💭 ${data.thinking}</div>`;
-                    if (data.action) content += `<div class="step-action">⚡ ${JSON.stringify(data.action)}</div>`;
-                    appendLog("Agent", content);
+                    if (data.thinking) content += `<div class="step-thinking"><i class="bi bi-lightbulb"></i> ${data.thinking}</div>`;
+                    if (data.action) content += `<div class="step-action"><i class="bi bi-lightning-charge"></i> ${JSON.stringify(data.action)}</div>`;
+                    appendLog("Agent", content, "agent");
                 } else if (msg.type === 'finish') {
                     appendLog("System", `Task finished: ${msg.message}`, "success");
+                    resetTaskUI();
                     ws.close();
                 } else if (msg.type === 'error') {
-                    appendLog("Error", msg.message, "danger");
+                    appendLog("Error", msg.message, "error");
+                    resetTaskUI();
                 } else if (msg.type === 'info') {
-                    appendLog("System", msg.message, "info");
+                    appendLog("System", msg.message, "system");
                 }
             };
             
             ws.onerror = (e) => {
-                appendLog("Error", "WebSocket error", "danger");
+                appendLog("Error", "WebSocket error", "error");
+                resetTaskUI();
             };
+            
+            ws.onclose = () => {
+                resetTaskUI();
+            };
+        }
+        
+        function stopTask() {
+            if (ws) {
+                ws.close();
+                appendLog("System", "Task stopped by user.", "warning");
+            }
+            resetTaskUI();
+        }
+        
+        function resetTaskUI() {
+            document.getElementById('run-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
         }
 
         function appendLog(sender, content, type = "") {
             const log = document.getElementById('chat-log');
+            
+            // Remove placeholder if exists
+            if (log.querySelector('.text-center')) {
+                log.innerHTML = '';
+            }
+            
             const entry = document.createElement('div');
-            entry.className = `step-item ${type ? 'text-' + type : ''}`;
-            entry.innerHTML = `<strong>${sender}:</strong> ${content}`;
+            entry.className = `step-item ${type}`;
+            
+            let icon = 'bi-person';
+            if (sender === 'Agent') icon = 'bi-robot';
+            if (sender === 'System') icon = 'bi-gear';
+            if (sender === 'Error') icon = 'bi-exclamation-triangle';
+            
+            entry.innerHTML = `
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi ${icon} me-2"></i>
+                    <strong>${sender}</strong>
+                    <small class="text-muted ms-auto">${new Date().toLocaleTimeString()}</small>
+                </div>
+                <div>${content}</div>
+            `;
             log.appendChild(entry);
             log.scrollTop = log.scrollHeight;
         }
 
         // Initial load
         refreshDevices();
+        
+        // Enter key to submit
+        document.getElementById('task-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                startTask();
+            }
+        });
     </script>
 </body>
 </html>
