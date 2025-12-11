@@ -39,11 +39,17 @@ agent_lock = threading.Lock()
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
+    # Reload env vars to pick up changes in .env without restarting
+    load_dotenv(override=True)
+    
+    api_key = os.getenv("API_KEY", "")
+    print(f"DEBUG: Reloaded .env. API_KEY found: {'Yes' if api_key else 'No'}")
+    
     return templates.TemplateResponse("index.html", {
         "request": request,
         "default_model": os.getenv("MODEL_NAME", "ZhipuAI/AutoGLM-Phone-9B"),
         "default_base_url": os.getenv("BASE_URL", "https://api-inference.modelscope.cn/v1"),
-        "default_api_key": os.getenv("API_KEY", ""),
+        "default_api_key": api_key,
         "default_max_steps": os.getenv("MAX_STEPS", "20")
     })
 
@@ -141,4 +147,5 @@ async def websocket_endpoint(websocket: WebSocket):
         print("Client disconnected")
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
